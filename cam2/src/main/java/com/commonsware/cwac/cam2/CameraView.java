@@ -28,6 +28,7 @@ import android.view.TextureView;
 import android.view.View;
 
 import com.commonsware.cwac.cam2.util.Size;
+import com.commonsware.cwac.cam2.util.Utils;
 
 /**
  * Class responsible for rendering preview frames on the UI
@@ -40,6 +41,9 @@ public class CameraView extends TextureView implements TextureView.SurfaceTextur
     void onDestroyed(CameraView cv) throws Exception;
     void onFocusChanged(Rect focusRect);
   }
+
+  private static final int FOCUS_AREA_SIZE = 300;
+
 
   /**
    * The requested size of the preview frames, or null to just
@@ -233,25 +237,9 @@ public class CameraView extends TextureView implements TextureView.SurfaceTextur
     setTransform(txform);
   }
 
-  private int clamp(int touchCoordinateInCameraReper, int focusAreaSize) {
-    int result;
-    if (Math.abs(touchCoordinateInCameraReper)+focusAreaSize/2>1000){
-      if (touchCoordinateInCameraReper>0){
-        result = 1000 - focusAreaSize/2;
-      } else {
-        result = -1000 + focusAreaSize/2;
-      }
-    } else{
-      result = touchCoordinateInCameraReper - focusAreaSize/2;
-    }
-    return result;
-  }
-
-  private static  final int FOCUS_AREA_SIZE = 300;
-
   private Rect calculateFocusArea(float x, float y) {
-    int left = clamp(Float.valueOf((x / getWidth()) * 2000 - 1000).intValue(), FOCUS_AREA_SIZE);
-    int top = clamp(Float.valueOf((y / getHeight()) * 2000 - 1000).intValue(), FOCUS_AREA_SIZE);
+    int left = Utils.clamp(Float.valueOf((x / getWidth()) * 2000 - 1000).intValue(), FOCUS_AREA_SIZE);
+    int top = Utils.clamp(Float.valueOf((y / getHeight()) * 2000 - 1000).intValue(), FOCUS_AREA_SIZE);
 
     return new Rect(left, top, left + FOCUS_AREA_SIZE, top + FOCUS_AREA_SIZE);
   }

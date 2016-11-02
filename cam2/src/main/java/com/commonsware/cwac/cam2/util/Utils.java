@@ -181,6 +181,20 @@ public class Utils {
     }
   }
 
+  public static int clamp(int touchCoordinateInCameraReper, int focusAreaSize) {
+    int result;
+    if (Math.abs(touchCoordinateInCameraReper)+focusAreaSize/2>1000){
+      if (touchCoordinateInCameraReper>0){
+        result = 1000 - focusAreaSize/2;
+      } else {
+        result = -1000 + focusAreaSize/2;
+      }
+    } else{
+      result = touchCoordinateInCameraReper - focusAreaSize/2;
+    }
+    return result;
+  }
+
   static class CompareSizesByArea implements Comparator<Size> {
 
     @Override
