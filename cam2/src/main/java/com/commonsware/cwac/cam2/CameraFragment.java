@@ -36,10 +36,13 @@ import android.view.animation.OvershootInterpolator;
 import android.widget.Chronometer;
 import android.widget.ImageView;
 import android.widget.SeekBar;
+
 import com.github.clans.fab.FloatingActionButton;
 import com.github.clans.fab.FloatingActionMenu;
+
 import java.io.File;
 import java.util.LinkedList;
+
 import de.greenrobot.event.EventBus;
 
 /**

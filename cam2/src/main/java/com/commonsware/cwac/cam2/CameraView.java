@@ -16,15 +16,17 @@ package com.commonsware.cwac.cam2;
 
 import android.app.Activity;
 import android.content.Context;
-import android.content.res.Configuration;
 import android.graphics.Matrix;
+import android.graphics.Rect;
 import android.graphics.RectF;
 import android.graphics.SurfaceTexture;
 import android.util.AttributeSet;
 import android.util.Log;
+import android.view.MotionEvent;
 import android.view.Surface;
 import android.view.TextureView;
-import android.view.WindowManager;
+import android.view.View;
+
 import com.commonsware.cwac.cam2.util.Size;
 
 /**
@@ -32,10 +34,11 @@ import com.commonsware.cwac.cam2.util.Size;
  * as a View for the user to see and interact with. Also handles
  * maintaining aspect ratios and dealing with full-bleed previews.
  */
-public class CameraView extends TextureView implements TextureView.SurfaceTextureListener {
+public class CameraView extends TextureView implements TextureView.SurfaceTextureListener , View.OnTouchListener{
   public interface StateCallback {
     void onReady(CameraView cv);
     void onDestroyed(CameraView cv) throws Exception;
+    void onFocusChanged(Rect focusRect);
   }
 
   /**
@@ -144,6 +147,7 @@ public class CameraView extends TextureView implements TextureView.SurfaceTextur
 
   private void initListener() {
     setSurfaceTextureListener(this);
+    setOnTouchListener(this);
   }
 
   @Override
@@ -227,5 +231,37 @@ public class CameraView extends TextureView implements TextureView.SurfaceTextur
     }
 
     setTransform(txform);
+  }
+
+  private int clamp(int touchCoordinateInCameraReper, int focusAreaSize) {
+    int result;
+    if (Math.abs(touchCoordinateInCameraReper)+focusAreaSize/2>1000){
+      if (touchCoordinateInCameraReper>0){
+        result = 1000 - focusAreaSize/2;
+      } else {
+        result = -1000 + focusAreaSize/2;
+      }
+    } else{
+      result = touchCoordinateInCameraReper - focusAreaSize/2;
+    }
+    return result;
+  }
+
+  private static  final int FOCUS_AREA_SIZE = 300;
+
+  private Rect calculateFocusArea(float x, float y) {
+    int left = clamp(Float.valueOf((x / getWidth()) * 2000 - 1000).intValue(), FOCUS_AREA_SIZE);
+    int top = clamp(Float.valueOf((y / getHeight()) * 2000 - 1000).intValue(), FOCUS_AREA_SIZE);
+
+    return new Rect(left, top, left + FOCUS_AREA_SIZE, top + FOCUS_AREA_SIZE);
+  }
+
+  @Override
+  public boolean onTouch(View v, MotionEvent event) {
+    if(stateCallback != null) {
+      stateCallback.onFocusChanged(calculateFocusArea(event.getX(), event.getY()));
+      return true;
+    }
+    return false;
   }
 }

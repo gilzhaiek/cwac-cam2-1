@@ -15,16 +15,18 @@
 package com.commonsware.cwac.cam2;
 
 import android.content.Context;
+import android.graphics.Rect;
 import android.graphics.SurfaceTexture;
 import android.os.Build;
 import android.util.Log;
+
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
+
 import de.greenrobot.event.EventBus;
 
 /**
@@ -296,6 +298,8 @@ abstract public class CameraEngine {
    */
   abstract public void takePicture(CameraSession session,
                                    PictureTransaction xact);
+
+  abstract public void focusOnThis(CameraSession session, Rect focusRect);
 
   abstract public void recordVideo(CameraSession session,
       VideoTransaction xact) throws Exception;
