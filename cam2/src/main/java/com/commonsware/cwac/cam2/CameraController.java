@@ -16,6 +16,7 @@ package com.commonsware.cwac.cam2;
 
 import android.content.res.Configuration;
 import android.graphics.ImageFormat;
+import android.graphics.Rect;
 import android.graphics.SurfaceTexture;
 import android.os.Build;
 import android.os.Bundle;
@@ -195,6 +196,13 @@ public class CameraController implements CameraView.StateCallback {
   @Override
   public void onDestroyed(CameraView cv) throws Exception {
     stop();
+  }
+
+  @Override
+  public void onFocusChanged(Rect focusRect) {
+    if (session!=null) {
+      engine.focusOnThis(session, focusRect);
+    }
   }
 
   /**

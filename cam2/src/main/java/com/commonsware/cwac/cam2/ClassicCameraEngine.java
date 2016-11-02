@@ -23,13 +23,16 @@ import android.hardware.Camera;
 import android.media.MediaRecorder;
 import android.os.Build;
 import android.util.Log;
+
 import com.commonsware.cwac.cam2.util.Size;
+
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
+
 import de.greenrobot.event.EventBus;
 
 /**
@@ -170,6 +173,59 @@ public class ClassicCameraEngine extends CameraEngine
 
     session.destroy();
     getBus().post(new ClosedEvent());
+  }
+
+  @Override
+  public void focusOnThis(CameraSession session, Rect focusRect) {
+    Descriptor descriptor=(Descriptor)session.getDescriptor();
+    Camera camera=descriptor.getCamera();
+
+    if (camera != null) {
+      camera.cancelAutoFocus();
+
+      Camera.Parameters parameters = camera.getParameters();
+      if (parameters.getFocusMode() != Camera.Parameters.FOCUS_MODE_AUTO) {
+        parameters.setFocusMode(Camera.Parameters.FOCUS_MODE_AUTO);
+      }
+      if (parameters.getMaxNumFocusAreas() > 0) {
+        List<Camera.Area> cameraAreaList = new ArrayList<>();
+        cameraAreaList.add(new Camera.Area(focusRect, 1000));
+        parameters.setFocusAreas(cameraAreaList);
+      }
+
+      try {
+        camera.cancelAutoFocus();
+        camera.setParameters(parameters);
+        camera.startPreview();
+        camera.autoFocus(new Camera.AutoFocusCallback() {
+          @Override
+          public void onAutoFocus(boolean success, Camera camera) {
+            String focusMode = Camera.Parameters.FOCUS_MODE_CONTINUOUS_PICTURE;
+            if(!camera.getParameters().getSupportedFocusModes().contains(
+                    Camera.Parameters.FOCUS_MODE_CONTINUOUS_PICTURE)) {
+              if(camera.getParameters().getSupportedFocusModes().contains(
+                      Camera.Parameters.FOCUS_MODE_AUTO)) {
+                focusMode = Camera.Parameters.FOCUS_MODE_AUTO;
+              } else {
+                return; // Can't setFocusMode to a non-supported FOCUS_MODE
+              }
+            }
+
+            if (!camera.getParameters().getFocusMode().equals(focusMode)) {
+              Camera.Parameters parameters = camera.getParameters();
+              parameters.setFocusMode(focusMode);
+              if (parameters.getMaxNumFocusAreas() > 0) {
+                parameters.setFocusAreas(null);
+              }
+              camera.setParameters(parameters);
+              camera.startPreview();
+            }
+          }
+        });
+      } catch (Exception e) {
+        e.printStackTrace();
+      }
+    }
   }
 
   /**
